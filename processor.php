@@ -1,18 +1,30 @@
 <?php
     session_start();
-    $msg = "Guest";
+    unset($_SESSION["just_registered"]);
+    unset($_SESSION['wrong']);
     if(isset($_POST['register'])) {
-        $f_name = $_POST['f_name'];
-        $l_name = $_POST['l_name'];
-        $u_name = $_POST['u_name'];
-        $password = $_POST['password'];
+        $username = trim($_POST['u_name']);
+        $data = [$username => [ "f_name" => trim($_POST['f_name']),
+        "l_name" => trim($_POST['l_name']),
+        "u_name" => trim($_POST['u_name']),
+        "password" => trim($_POST['password'])
+        ]];
 
-        $msg = "You are welcome, " . $f_name . ".";
-        $new_line = $f_name . ',' . $l_name . ',' . $u_name . ',' . $password . "\n";
-        $my_file = fopen('database.txt', 'a');
-        fwrite($my_file, $new_line);
-        fclose($my_file);
-        //echo $new_line;
+        $my_file = file_get_contents('database.json');
+        $tmp_arr = json_decode($my_file, $associative = true);
+        if ($tmp_arr != NULL) {
+            array_push($tmp_arr, $data);
+            $data = json_encode($tmp_arr);
+            file_put_contents('database.json', $data);
+        } else{
+            $tmp_arr = [];
+            array_push($tmp_arr, $data);
+            $data = json_encode($tmp_arr);
+            file_put_contents('database.json', $data);
+        }
+        $_SESSION['just_registered'] = "yes";
+
+        header("Location: login.php");
 
     } elseif (isset($_POST['reset'])) {
         $reading = fopen('database.txt', 'r');
@@ -40,26 +52,28 @@
     } elseif (isset($_POST['login'])) {
         $u_name = trim($_POST['u_name']);
         $password = trim($_POST['password']);
-        $my_file = fopen('database.txt', 'r');
 
-        $msg = "The password or username provided, is incorrect";
-        while (!feof($my_file)) {
-            $line = fgets($my_file);
-            if ($line == "") continue;
-            $to_array = explode(',', $line);
-            if (trim($to_array[2]) == $u_name && trim($to_array[3]) == $password) {
-                $msg = "You are now logged in, " . $u_name;
-                break;
+        $my_file = file_get_contents('database.json');
+        $tmp_arr = json_decode($my_file, $associative = true);
+
+        if ($tmp_arr != NULL) {
+            if (array_key_exists($u_name, $tmp_arr)) {
+                if ($tmp_arr[$u_name]['password'] == $password) {
+                    $_SESSION['username'] = $u_name;
+                    header("Location: dashboard.php");
+                } else {
+                    $_SESSION['wrong'] = "The login details you entered are incorrect";
+                    header("Location: login.php");
+                }
+            } else {
+                $_SESSION['wrong'] = "The login details you entered are incorrect";
+                header("Location: login.php");
             }
+        } else {
+            $_SESSION['wrong'] = "The login details you entered are incorrect";
+            header("Location: login.php");
         }
 
     }
 
 ?>
-
-<html>
-    <center>
-    <h1><?php echo $msg ?></h1>
-    <button type='submit' name='logout' style="padding: 10px; background: blue; color: white">LOGOUT</>
-    </center>
-</html>
