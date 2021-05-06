@@ -6,15 +6,17 @@
 	<title>Practising files and forms</title>
 </head>
 <body>
+<center>
 <?php
     if (isset($_SESSION['just_registered'])) {
         echo '<h3>You have successfully registered your account.</h3>
         </p>Enter your details below to login</p>';
     }
-    if (isset($_SESSION['wrong'])) {
-        echo "<h3>".$_SESSION['wrong']."</h3>";
+    if (isset($_SESSION['msg'])) {
+        echo "<h3>".$_SESSION['msg']."</h3>";
     }
     ?>
+    <h3> LOGIN </h3>
     <form action="processor.php" method="POST">
         <input type="text" name="u_name" placeholder="Username">
         <input type="password" name="password" placeholder="Enter a strong password">
@@ -28,5 +30,6 @@
     } 
     ?>
     <p>Forgotten your password? CLick <a href="reset.php">here</a> to reset your password</p>
+</center>
 </body>
 </html>
